@@ -154,6 +154,7 @@
 				<version>2.3</version>
 				<configuration>
 					<!-- configuration elements goes here -->
+					<warName>cafe-processing</warName>
 					<outputDirectory>deployments</outputDirectory>
 				</configuration>
 			</plugin>

@@ -150,9 +150,10 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<artifactId>maven-ear-plugin</artifactId>
+				<artifactId>maven-war-plugin</artifactId>
 				<version>2.3</version>
 				<configuration>
+					<warName>cafe-web</warName>
 					<outputDirectory>deployments</outputDirectory>
 				</configuration>
 			</plugin>
