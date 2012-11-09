@@ -52,6 +52,7 @@
                             <bundleFileName>cafe-web.war</bundleFileName>
                         </webModule>
                     </modules>
+                   <outputDirectory>deployments</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
