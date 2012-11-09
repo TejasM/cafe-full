@@ -56,5 +56,5 @@
             </plugin>
         </plugins>
         <finalName>Cafe</finalName>
-    </build>
+    </build>    
 </project>
