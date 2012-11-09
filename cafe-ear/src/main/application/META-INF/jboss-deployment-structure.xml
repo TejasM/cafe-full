@@ -1,0 +1,4 @@
+ <jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.0">
+    <sub-deployment name="cafe-web.war"/>
+    <sub-deployment name="cafe-processing.war"/>
+</jboss-deployment-structure>

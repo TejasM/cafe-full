@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+			http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+			http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+			http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+			http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+
+	<beans:bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView"></beans:property>
+		<beans:property name="prefix" value="/WEB-INF/jsp/"></beans:property>
+		<beans:property name="suffix" value=".jsp"></beans:property>
+	</beans:bean>
+
+	<annotation-config />
+
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+
+	<context:component-scan
+		base-package="org.springframework.integration.samples.cafe.annotation" />
+
+	<context:component-scan
+		base-package="org.springframework.integration.samples.cafe.controller" />
+
+	<context:component-scan
+		base-package="org.springframework.integration.samples.cafe.dao" />
+
+	<context:component-scan
+		base-package="org.springframework.integration.samples.converter" />
+	<mvc:annotation-driven conversion-service="conversionService" />
+
+	<jee:jndi-lookup jndi-name="RemoteConnectionFactory"
+		id="connectionFactory"></jee:jndi-lookup>
+
+	<!-- Inbound/Outbound Channels -->
+
+	<jms:inbound-channel-adapter id="inputQueue"
+		connection-factory="connectionFactory" destination-name="testQueue"
+		channel="orders">
+		<poller fixed-delay="1000" />
+	</jms:inbound-channel-adapter>
+
+	<outbound-channel-adapter id="outboundDelivery"
+		ref="JPAOutbound" method="addDelivery" channel="deliveries"></outbound-channel-adapter>
+
+
+	<!-- Server Side Channel -->
+	<publish-subscribe-channel id="orders" />
+	<channel id="drinks" />
+	<channel id="coldDrinks">
+		<queue capacity="10" />
+	</channel>
+	<channel id="hotDrinks">
+		<queue capacity="10" />
+	</channel>
+	<channel id="coldDrinkBarista" />
+	<channel id="hotDrinkBarista" />
+	<channel id="preparedDrinks" />
+
+	<bridge input-channel="coldDrinks" output-channel="coldDrinkBarista">
+		<poller fixed-delay="1000" />
+	</bridge>
+
+	<bridge input-channel="hotDrinks" output-channel="hotDrinkBarista">
+		<poller fixed-delay="1000" />
+	</bridge>
+
+	<publish-subscribe-channel id="deliveries" />
+
+</beans:beans>
