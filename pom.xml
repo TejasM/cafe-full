@@ -14,7 +14,6 @@
 				<module>cafe-domain</module>
 				<module>cafe-processing</module>
 				<module>cafe-web</module>
-				<module>cafe-ear</module>
 			</modules>
 		</profile>
 	</profiles>
