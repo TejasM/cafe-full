@@ -51,7 +51,8 @@
                             <contextRoot>/cafe-web</contextRoot>
                             <bundleFileName>cafe-web.war</bundleFileName>
                         </webModule>
-                    </modules>
+                    </modules>                    
+                    <outputDirectory>deployments</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
