@@ -19,7 +19,7 @@
 			</bean>
 		</property>
 		<property name="dataSource" ref="embeddedDataSource" />
-		<property name="persistenceUnitName" value="CafeProcessingPU"></property>		
+		<property name="persistenceUnitName" value="CafeWebPU"></property>		
 	</bean>
 	
 	<jpa:repositories base-package="org.springframework.integration.samples.cafe.dao"></jpa:repositories>
