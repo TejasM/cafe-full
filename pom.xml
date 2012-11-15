@@ -7,6 +7,11 @@
 	<packaging>pom</packaging>
 	<dependencies>
 	</dependencies>
+	<modules>
+		<module>cafe-domain</module>
+		<module>cafe-processing</module>
+		<module>cafe-web</module>
+	</modules>
 	<profiles>
 		<profile>
 			<id>openshift</id>

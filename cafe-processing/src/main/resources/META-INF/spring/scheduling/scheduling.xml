@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/batch  http://www.springframework.org/schema/batch/spring-batch.xsd
+	http://www.springframework.org/schema/task  http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<!-- Scheduling -->
+
+	<context:component-scan
+		base-package="org.springframework.integration.samples.cafe.scheduling" />
+
+	<task:annotation-driven executor="executorWithPoolSizeRange"
+		scheduler="taskScheduler" />
+
+	<task:executor id="executorWithPoolSizeRange" pool-size="5-25"
+		queue-capacity="100" />
+
+	<task:scheduler id="taskScheduler" pool-size="1" />
+
+	<!-- Spring Batch -->
+	<bean id="jobRepository"
+		class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="isolationLevelForCreate" value="ISOLATION_DEFAULT"/>
+	</bean>
+
+	<bean id="jobLauncher"
+		class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+	</bean>
+
+
+	<batch:job id="DeliveryToRevenueConversion">
+		<batch:step id="convert">
+			<batch:tasklet transaction-manager="transactionManager">
+				<batch:chunk reader="deliveryReader" processor="deliveryToRevenue"
+					writer="revenueWriter" commit-interval="10" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+	<bean id="deliveryReader" class="org.springframework.batch.item.database.JpaPagingItemReader">
+		<property name="entityManagerFactory" ref="entityManagerFactory"></property>
+		<property name="queryString" value="select d from Delivery d"/>
+	</bean>
+	
+	<bean id="deliveryToRevenue" class="org.springframework.integration.samples.cafe.batch.DeliveryToRevenue"/>
+	
+	<bean id="revenueWriter" class="org.springframework.batch.item.database.JpaItemWriter">
+		<property name="entityManagerFactory" ref="entityManagerFactory"></property>
+	</bean>
+
+</beans>

@@ -8,6 +8,7 @@
 		<class>org.springframework.integration.samples.cafe.Drink</class>
 		<class>org.springframework.integration.samples.cafe.Order</class>
 		<class>org.springframework.integration.samples.cafe.OrderItem</class>
+		<class>org.springframework.integration.samples.cafe.annotation.Revenue</class>
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
 			<property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:embeddedDataSource" />
