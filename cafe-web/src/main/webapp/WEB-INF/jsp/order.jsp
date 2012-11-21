@@ -35,8 +35,10 @@
 			</table>
 			<table>
 				<tr>
-					<td><input type="submit" value="Submit Order"
-						onclick="submitOrder()" /></td>
+					<td><input type="submit" value="Submit Order" onclick="submitOrder()" /></td>
+				</tr>
+				<tr>
+					<td><input type="submit" value="Submit for Batch Processing" onclick="submitOrderBatch()" /></td>
 				</tr>
 			</table>
 		</form:form>
@@ -49,7 +51,7 @@
 
 
 	<script type="text/javascript">
-		function submitOrder() {
+		function submitOrder() {					
 			jq(function() {
 				// Call a URL and pass two arguments
 				// Also pass a call back function
@@ -58,6 +60,25 @@
 				// You might find a warning in Firefox: Warning: Unexpected token in attribute selector: '!' 
 				// See http://bugs.jquery.com/ticket/7535
 				jq.post("order", jq('#order').serialize(), function(data) {
+					// data contains the result
+					// Assign result to the sum id
+					jq("#success").replaceWith(
+							'<span id="success">' + data + '</span>');
+					jq("#table").load("/cafe/status");
+				});
+			});
+		}
+	</script>
+	<script type="text/javascript">
+		function submitOrderBatch() {					
+			jq(function() {
+				// Call a URL and pass two arguments
+				// Also pass a call back function
+				// See http://api.jquery.com/jQuery.post/
+				// See http://api.jquery.com/jQuery.ajax/
+				// You might find a warning in Firefox: Warning: Unexpected token in attribute selector: '!' 
+				// See http://bugs.jquery.com/ticket/7535
+				jq.post("order/batch", jq('#order').serialize(), function(data) {
 					// data contains the result
 					// Assign result to the sum id
 					jq("#success").replaceWith(

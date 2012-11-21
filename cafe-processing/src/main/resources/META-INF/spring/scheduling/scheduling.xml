@@ -31,26 +31,49 @@
 		class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
 		<property name="jobRepository" ref="jobRepository" />
 	</bean>
+	
+	<bean class="org.springframework.batch.core.scope.StepScope" />
 
-
-	<batch:job id="DeliveryToRevenueConversion">
-		<batch:step id="convert">
+	<batch:job id="PlaceOrder">
+		<batch:step id="order">
 			<batch:tasklet transaction-manager="transactionManager">
-				<batch:chunk reader="deliveryReader" processor="deliveryToRevenue"
-					writer="revenueWriter" commit-interval="10" />
+				<batch:chunk reader="orderReader" processor="placeOrder" writer="syncWriter" chunk-completion-policy="wholeFileCompletionPolicy"/>
 			</batch:tasklet>
 		</batch:step>
 	</batch:job>
 	
-	<bean id="deliveryReader" class="org.springframework.batch.item.database.JpaPagingItemReader">
-		<property name="entityManagerFactory" ref="entityManagerFactory"></property>
-		<property name="queryString" value="select d from Delivery d"/>
+	<bean id="wholeFileCompletionPolicy" class="org.springframework.batch.repeat.policy.DefaultResultCompletionPolicy"/>
+	
+	
+	<bean id="orderReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+		<property name="resource" value="#{jobParameters['input.file']}"/>
+		<property name="lineMapper" ref="jsonToOrder"></property>
+		<property name="strict" value="false"></property>
 	</bean>
 	
-	<bean id="deliveryToRevenue" class="org.springframework.integration.samples.cafe.batch.DeliveryToRevenue"/>
+	<bean id="jsonToOrder" class="org.springframework.integration.samples.cafe.batch.JsonToOrder"/>
 	
-	<bean id="revenueWriter" class="org.springframework.batch.item.database.JpaItemWriter">
-		<property name="entityManagerFactory" ref="entityManagerFactory"></property>
+	
+	<bean id="asyncCafe" class="org.springframework.batch.integration.async.AsyncItemProcessor" scope="step">
+		<property name="delegate" ref="placeOrder"></property>
+		<property name="taskExecutor" ref="taskExecutor"/>
 	</bean>
+	
+	<bean id="placeOrder" class="org.springframework.integration.samples.cafe.batch.PlaceOrder" scope="step"/>
+	
+	<bean id="asyncWriter" class="org.springframework.batch.integration.async.AsyncItemWriter" scope="step">
+		<property name="delegate" ref="syncWriter"></property>
+	</bean>
+	
+	<task:executor id="taskExecutor" pool-size="5"/>
+	
+	<bean id="syncWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step">
+		<property name="resource" value="#{jobParameters['output.file']}"/>
+		<property name="lineAggregator" ref="lineAggregator"></property>
+<!-- 		<property name="appendAllowed" value="true"></property>
+ -->	</bean>
+	
 
+	<bean id="lineAggregator" class="org.springframework.batch.item.file.transform.PassThroughLineAggregator"/>
+	
 </beans>

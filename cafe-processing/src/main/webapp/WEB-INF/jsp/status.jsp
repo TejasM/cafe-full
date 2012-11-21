@@ -18,8 +18,10 @@
 </head>
 <body>
 	
-		<span id="table"><div id="stylized" class="myform"> <h1>Delivered:</h1> <br>
+		<span id="table"><div id="stylized" class="myform"> <h1>Delivered:</h1>
+		 <br>
 			<table>
+				<tr valign='top'><td><%@include file='template.html'%></td>
 				<c:forEach var="delivery" items="${delivered}">
 					<tr>
 						<td>${delivery}</td>

@@ -42,11 +42,8 @@ public class Order implements Serializable {
 
 	@OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
 	private List<OrderItem> orderItems = new ArrayList<OrderItem>();
-
-	@Id
-	@GeneratedValue
-	private int id;
 	
+	@Id
 	/** the order number used for tracking */
 	private int number =0;
 
@@ -76,13 +73,5 @@ public class Order implements Serializable {
 	
 	public String toString(){
 		return "Order #: " + this.number + " " + this.orderItems;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 }

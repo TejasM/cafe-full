@@ -5,6 +5,7 @@
 	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:stream="http://www.springframework.org/schema/integration/stream"
 	xmlns:jms="http://www.springframework.org/schema/integration/jms"
 	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 			http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
@@ -12,7 +13,8 @@
 			http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
 			http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
 			http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
-			http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+			http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
 
 	<!-- View Resolver -->
@@ -56,24 +58,28 @@
 
 
 	<!-- Server Side Channel -->
+	<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.annotation.Cafe"/>
 	<publish-subscribe-channel id="orders" />
 	<channel id="drinks" />
 	<channel id="coldDrinks">
-		<queue capacity="10" />
+		<queue capacity="10"/>
 	</channel>
 	<channel id="hotDrinks">
-		<queue capacity="10" />
+		<queue capacity="10"/>
 	</channel>
 	<channel id="coldDrinkBarista" />
 	<channel id="hotDrinkBarista" />
 	<channel id="preparedDrinks" />
-
+	
+	
+	<task:executor id="executor" pool-size="5-25" queue-capacity="10"/>
+	
 	<bridge input-channel="coldDrinks" output-channel="coldDrinkBarista">
-		<poller fixed-delay="1000" />
+		<poller fixed-delay="1000" task-executor="executor"/>
 	</bridge>
 
 	<bridge input-channel="hotDrinks" output-channel="hotDrinkBarista">
-		<poller fixed-delay="1000" />
+		<poller fixed-delay="1000" task-executor="executor"/>
 	</bridge>
 
 	<publish-subscribe-channel id="deliveries" />
