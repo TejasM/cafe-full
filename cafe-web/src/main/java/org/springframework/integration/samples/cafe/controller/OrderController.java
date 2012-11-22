@@ -69,7 +69,7 @@ public class OrderController {
 			orderitem.setOrderNumber(order.getNumber());
 		}
 		String json = converter.toJson(order) + "\n";
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy-kk");
+		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
 		String date = format.format(new Date());
 		
 		File file =new File("json-" + date.substring(0, 9).concat(String.valueOf((Integer.valueOf(date.substring(9, date.length())) + 1))) + ".txt");

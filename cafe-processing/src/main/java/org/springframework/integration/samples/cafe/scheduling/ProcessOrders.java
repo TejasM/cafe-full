@@ -32,7 +32,7 @@ public class ProcessOrders {
 	public void processDailyOrders() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException, IOException{
 		JobParametersBuilder builder = new JobParametersBuilder();
 		builder.addDate("today", new Date());
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy-hh");
+		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
 		builder.addString("input.file", "file:json-" + format.format(new Date()) + ".txt");
 		builder.addString("output.file", "file:processedorders-" + format.format(new Date()) + ".txt");
         launcher.run(job, builder.toJobParameters());

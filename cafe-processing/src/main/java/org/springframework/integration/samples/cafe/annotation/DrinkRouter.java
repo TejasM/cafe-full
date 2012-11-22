@@ -30,5 +30,4 @@ public class DrinkRouter {
 	public String resolveOrderItemChannel(OrderItem orderItem) {
 		return (orderItem.getIced()) ? "coldDrinks" : "hotDrinks";
 	}
-
 }
