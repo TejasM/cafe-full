@@ -176,3 +176,13 @@ Moving onto to the writer:
 
 [source,xml]
 ----
+<bean id="syncWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step">
+	<property name="resource" value="#{jobParameters['output.file']}"/>
+	<property name="lineAggregator" ref="lineAggregator"></property>
+</bean>
+
+
+<bean id="lineAggregator" class="org.springframework.batch.item.file.transform.PassThroughLineAggregator"/>
+----
+
+As with the reader, we late bind the resource that the writer uses to write to 
