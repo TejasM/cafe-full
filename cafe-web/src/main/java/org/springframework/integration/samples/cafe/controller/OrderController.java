@@ -72,7 +72,7 @@ public class OrderController {
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
 		String date = format.format(new Date());
 		
-		File file =new File("json-" + date.substring(0, 9).concat(String.valueOf((Integer.valueOf(date.substring(9, date.length())) + 1))) + ".txt");
+		File file =new File("json-" + date + ".txt");
 		 
 		//if file doesnt exists, then create it
 		if(!file.exists()){

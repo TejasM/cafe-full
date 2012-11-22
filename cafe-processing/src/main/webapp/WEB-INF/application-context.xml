@@ -58,7 +58,7 @@
 
 
 	<!-- Server Side Channel -->
-	<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.annotation.Cafe"/>
+	<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.batch.PlaceOrder" default-request-channel="orders" default-reply-channel="deliveries"/>
 	<publish-subscribe-channel id="orders" />
 	<channel id="drinks" />
 	<channel id="coldDrinks">

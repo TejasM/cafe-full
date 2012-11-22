@@ -49,7 +49,7 @@ public class OrderController {
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
 		String date = format.format(new Date());
 		
-		File file = new File("json-" + date.substring(0, 9).concat(String.valueOf((Integer.valueOf(date.substring(9, date.length())) + 1))) + ".txt");
+		File file = new File("json-" + date + ".txt");
 		 
 		if(!file.exists()){
 			file.createNewFile();
@@ -147,24 +147,32 @@ public class JsonToOrder implements LineMapper<Order>{
 
 Again here we are using Gson, but its only here for sake of convenience.
 
-With the reader configured we can have a look at the processor:
+With the reader configured we can have a look at the processor. This is where we can start integrating Spring Integration and Spring Batch. The processor in a chunk step needs to implement ItemProcessor<I,O> and Spring Integration needs a gateway to publish orders to a channel, but there so reason why both can be done together.
+
+We can do something similar to the following:
 
 [source, xml]
 ----
-<bean id="placeOrder" class="org.springframework.integration.samples.cafe.batch.PlaceOrder" scope="step"/>
+<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.batch.PlaceOrder" default-request-channel="orders" default-reply-channel="deliveries"/>
 ----
 
 [source, java]
 ----
-public class PlaceOrder implements ItemProcessor<Order, Delivery> {
+@Scope("step")
+public interface PlaceOrder extends ItemProcessor<Order, Delivery> {
 	
-	@Autowired
-	private Cafe cafe;
-
-	public Delivery process(Order item) throws Exception {
-		Delivery delivery = cafe.placeOrder(item);
-		System.out.println("Sent order: " + item.getNumber());
-		return delivery;
-	}
+	@Gateway
+	Delivery process(Order item);
 }
+----
+
+So with a very simple and straightforward configuration, we can link any complex or simple Spring Integration setup to a batch process. With this configuration for every item read by the FlatFlieItemReader it will pass it onto the ItemProcessor. The processor, being a gateway, sends the Order, as a payload of a message, to the orders channel and waits for the reply from the deliveries.
+
+This configuration is synchronous and this inefficient because while the message is processed we could be sending more messages. Spring Batch allows you do this seamlessly, with AsyncItemProcessor/Writer, which delegates to a SyncItemProcessor/Writer (like the one we just setup).
+
+NOTE: Check repo for asynchronous version.
+
+Moving onto to the writer:
+
+[source,xml]
 ----

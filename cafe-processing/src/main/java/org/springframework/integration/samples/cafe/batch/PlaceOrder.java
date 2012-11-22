@@ -1,20 +1,14 @@
 package org.springframework.integration.samples.cafe.batch;
 
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.samples.cafe.Delivery;
 import org.springframework.integration.samples.cafe.Order;
-import org.springframework.integration.samples.cafe.annotation.Cafe;
 
-
-public class PlaceOrder implements ItemProcessor<Order, Delivery> {
+@Scope("step")
+public interface PlaceOrder extends ItemProcessor<Order, Delivery> {
 	
-	@Autowired
-	private Cafe cafe;
-
-	public Delivery process(Order item) throws Exception {
-		Delivery delivery = cafe.placeOrder(item);
-		System.out.println("Sent order: " + item.getNumber());
-		return delivery;
-	}
+	@Gateway
+	Delivery process(Order item);
 }

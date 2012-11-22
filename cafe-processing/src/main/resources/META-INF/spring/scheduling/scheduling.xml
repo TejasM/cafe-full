@@ -37,7 +37,7 @@
 	<batch:job id="PlaceOrder">
 		<batch:step id="order">
 			<batch:tasklet transaction-manager="transactionManager">
-				<batch:chunk reader="orderReader" processor="placeOrder" writer="syncWriter" chunk-completion-policy="wholeFileCompletionPolicy"/>
+				<batch:chunk reader="orderReader" processor="cafe" writer="syncWriter" chunk-completion-policy="wholeFileCompletionPolicy"/>
 			</batch:tasklet>
 		</batch:step>
 	</batch:job>
@@ -58,9 +58,7 @@
 		<property name="delegate" ref="placeOrder"></property>
 		<property name="taskExecutor" ref="taskExecutor"/>
 	</bean>
-	
-	<bean id="placeOrder" class="org.springframework.integration.samples.cafe.batch.PlaceOrder" scope="step"/>
-	
+		
 	<bean id="asyncWriter" class="org.springframework.batch.integration.async.AsyncItemWriter" scope="step">
 		<property name="delegate" ref="syncWriter"></property>
 	</bean>
