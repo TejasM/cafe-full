@@ -92,3 +92,79 @@ In order to send the form data to this mapping, we add another submit button:
 The controller appends the order as json string to a file for that specifc day/month/year. 
 
 .Configuring Batch Job
+
+Spring Batch works with the concept of chunks. Chunks are a set of inputs that the batch job treats atomically, the chunk size can be as large(entire file/database) or as small (a single file) as you like. 
+
+Each chunk is taken care of in a step. A step consists of a Reader, a (optional) Processor, and a Writer. The reader reads every item in the chunk one by one and hands of the individual item to the item processor, if one is configured. The processor can then do whatever it is required to and hands of the processed form of the input, the output, to the writer. The writer collects all the outputs belonging to a chunk and writes them once all items have been processed, thus there is atomicity at a chunk level
+
+We can configure a Spring Job in the following manner:
+
+[source, xml]
+-----
+<batch:job id="PlaceOrder">
+	<batch:step id="order">
+		<batch:tasklet transaction-manager="transactionManager">
+			<batch:chunk reader="orderReader" processor="placeOrder" writer="syncWriter" chunk-completion-policy="wholeFileCompletionPolicy"/>
+		</batch:tasklet>
+	</batch:step>
+</batch:job>
+----
+
+Now to configure the individual parts:
+
+*Reader*
+
+Since we saved the orders to be batch processed in a plain text file, we can use Spring Batch's in-built FlatFileItemReader:
+
+[source, xml]
+----
+<bean id="orderReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+	<property name="resource" value="#{jobParameters['input.file']}"/>
+	<property name="lineMapper" ref="jsonToOrder"></property>
+	<property name="strict" value="false"></property>
+</bean>
+
+<bean id="jsonToOrder" class="org.springframework.integration.samples.cafe.batch.JsonToOrder"/>
+----
+
+Spring Batch has a feature called late binding which allows you to setup the resource and other fields like it during run time. Therefore, we will provide the input resource at runtime, as it will be different for every day. The strict property is set to false because there may not be any orders that need processing on a given day, so its not strictly neccasary for the file to exist.
+
+The line mapper is custom class that is responsible for converting each line from JSON to an Order object. Here is the code for the JsonToOrder class:
+
+[source, java]
+----
+public class JsonToOrder implements LineMapper<Order>{
+	
+	private Gson converter = new Gson();
+
+	public Order mapLine(String line, int lineNumber) throws Exception {
+		Order order = converter.fromJson(line, Order.class);
+		return order;
+	}
+
+}
+----
+
+Again here we are using Gson, but its only here for sake of convenience.
+
+With the reader configured we can have a look at the processor:
+
+[source, xml]
+----
+<bean id="placeOrder" class="org.springframework.integration.samples.cafe.batch.PlaceOrder" scope="step"/>
+----
+
+[source, java]
+----
+public class PlaceOrder implements ItemProcessor<Order, Delivery> {
+	
+	@Autowired
+	private Cafe cafe;
+
+	public Delivery process(Order item) throws Exception {
+		Delivery delivery = cafe.placeOrder(item);
+		System.out.println("Sent order: " + item.getNumber());
+		return delivery;
+	}
+}
+----

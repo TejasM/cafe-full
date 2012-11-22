@@ -16,7 +16,5 @@ public class PlaceOrder implements ItemProcessor<Order, Delivery> {
 		Delivery delivery = cafe.placeOrder(item);
 		System.out.println("Sent order: " + item.getNumber());
 		return delivery;
-	}	
-	
-
+	}
 }

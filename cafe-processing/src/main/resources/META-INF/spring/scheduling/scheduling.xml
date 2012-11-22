@@ -70,8 +70,7 @@
 	<bean id="syncWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step">
 		<property name="resource" value="#{jobParameters['output.file']}"/>
 		<property name="lineAggregator" ref="lineAggregator"></property>
-<!-- 		<property name="appendAllowed" value="true"></property>
- -->	</bean>
+	</bean>
 	
 
 	<bean id="lineAggregator" class="org.springframework.batch.item.file.transform.PassThroughLineAggregator"/>
