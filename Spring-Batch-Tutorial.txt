@@ -1,0 +1,94 @@
+Adding Batch Processing to Cafe
+-------------------------------
+
+.What is Batch Processing?
+
+Batch Processing is the execution of set of instructions called jobs with little or no user intervention. As such the input data for the jobs for would be collected in advance and provided in an accessible format such as in a file or in a database. In this tutorial, we will add support for batch processing orders. 
+
+We will enhance the web interface to allow orders to be saved for batch processing later. Then we will add a scheduled batch process to run everyday at midnight to process all the orders collected throughout the day. The second part will showcase Spring Batch and how it can be integrated with Spring Integration.
+
+NOTE: This example may seem a little contrived but there are many cases where batch processing would be ideal, especially in scenarios where security and/or atomicity are required.
+
+.What is Spring Batch?
+
+Spring Batch is a framework for batch processing developed on top of Spring. It consists of a batch job skeleton, job execution API, and state management infrastructure. In this tutorial, we will be focusing on the first two aspects on Spring Batch.
+
+.Extending the Web Module
+
+We want to add the option to collect orders for processing later at end of the day. We can do this by using the currently form and just adding an additional mapping in the controller:
+
+To save orders in a readable format we save orders as JSON in a text file and the convenience factor we use GSON: http://code.google.com/p/google-gson/:
+
+[source, xml]
+----
+<dependency>
+	<groupId>com.google.code.gson</groupId>
+	<artifactId>gson</artifactId>
+	<version>2.2.2</version>
+</dependency>
+----
+
+
+[source, java]
+----
+@Controller
+@RequestMapping("/order")
+public class OrderController {
+	...
+	
+	private Gson converter = new Gson();
+		
+	@RequestMapping(method = RequestMethod.POST, value="batch")
+	@ResponseStatus(HttpStatus.CREATED)
+	public @ResponseBody String orderCreateBatch(Order order) throws IOException {
+		order.setNumber(getID());
+		for (OrderItem orderitem : order.getOrderItems()) {
+			orderitem.setOrderNumber(order.getNumber());
+		}
+		String json = converter.toJson(order) + "\n";
+		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
+		String date = format.format(new Date());
+		
+		File file = new File("json-" + date.substring(0, 9).concat(String.valueOf((Integer.valueOf(date.substring(9, date.length())) + 1))) + ".txt");
+		 
+		if(!file.exists()){
+			file.createNewFile();
+		}
+
+		FileWriter fileWritter = new FileWriter(file.getName(),true);
+	    BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+	    bufferWritter.write(json);
+	    bufferWritter.close();
+		return "Successfully created Order #: " + order.getNumber() + " and added for Batch processing";
+	}
+}
+----
+
+In order to send the form data to this mapping, we add another submit button:
+
+[source, xml]
+----
+<form:form commandName="order" id="order" onsubmit="return false;">
+	...
+	<tr>
+		<td><input type="submit" value="Submit for Batch Processing" onclick="submitOrderBatch()" /></td>
+	</tr>
+	...
+</form:form>
+
+<script type="text/javascript">
+	function submitOrderBatch() {					
+		jq(function() {
+			jq.post("order/batch", jq('#order').serialize(), function(data) {
+				jq("#success").replaceWith(
+						'<span id="success">' + data + '</span>');
+				jq("#table").load("/cafe/status");
+			});
+		});
+	}
+</script>
+----
+
+The controller appends the order as json string to a file for that specifc day/month/year. 
+
+.Configuring Batch Job

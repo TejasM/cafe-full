@@ -1,4 +1,4 @@
-Spring Integration and Spring Batch Tutorial
+Spring Integration Tutorial
 ============================================
 :Author:    Tejas Mehta
 :Email:     tmehta@redhat.com
@@ -170,15 +170,7 @@ public class OrderController {
 <script type="text/javascript">
 	function submitOrder() {					
 		jq(function() {
-			// Call a URL and pass two arguments
-			// Also pass a call back function
-			// See http://api.jquery.com/jQuery.post/
-			// See http://api.jquery.com/jQuery.ajax/
-			// You might find a warning in Firefox: Warning: Unexpected token in attribute selector: '!' 
-			// See http://bugs.jquery.com/ticket/7535
 			jq.post("order", jq('#order').serialize(), function(data) {
-				// data contains the result
-				// Assign result to the sum id
 				jq("#success").replaceWith(
 						'<span id="success">' + data + '</span>');
 				jq("#table").load("/cafe/status");
