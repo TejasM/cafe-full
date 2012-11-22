@@ -125,9 +125,13 @@ Since we saved the orders to be batch processed in a plain text file, we can use
 </bean>
 
 <bean id="jsonToOrder" class="org.springframework.integration.samples.cafe.batch.JsonToOrder"/>
+
+<bean class="org.springframework.batch.core.scope.StepScope" />
 ----
 
-Spring Batch has a feature called late binding which allows you to setup the resource and other fields like it during run time. Therefore, we will provide the input resource at runtime, as it will be different for every day. The strict property is set to false because there may not be any orders that need processing on a given day, so its not strictly neccasary for the file to exist.
+NOTE: The step scope is not present by default in Spring so we create a StepScope Bean.
+
+Spring Batch has a feature called late binding which allows you to setup the resource and other fields like it during run time. Therefore, we will provide the input resource at runtime, as it will be different for every day. The strict property is set to false because there may not be any orders that need processing on a given day, so its not strictly necessary for the file to exist.
 
 The line mapper is custom class that is responsible for converting each line from JSON to an Order object. Here is the code for the JsonToOrder class:
 
@@ -146,6 +150,8 @@ public class JsonToOrder implements LineMapper<Order>{
 ----
 
 Again here we are using Gson, but its only here for sake of convenience.
+
+*Processor*
 
 With the reader configured we can have a look at the processor. This is where we can start integrating Spring Integration and Spring Batch. The processor in a chunk step needs to implement ItemProcessor<I,O> and Spring Integration needs a gateway to publish orders to a channel, but there so reason why both can be done together.
 
@@ -172,6 +178,8 @@ This configuration is synchronous and this inefficient because while the message
 
 NOTE: Check repo for asynchronous version.
 
+*Writer*
+
 Moving onto to the writer:
 
 [source,xml]
@@ -185,4 +193,90 @@ Moving onto to the writer:
 <bean id="lineAggregator" class="org.springframework.batch.item.file.transform.PassThroughLineAggregator"/>
 ----
 
-As with the reader, we late bind the resource that the writer uses to write to 
+As with the reader, we late bind the resource that the writer writes to. In order to determine how to collect and write the ouptuts, the ItemWriter needs a LineAggregator. Spring Batch comes with several common ones; we are using the PassThroughLineAggregator, which just calls the toString method of the object(in our case a delivery).
+
+Now then only a small bit of the chunk step remains to be explained. For each <batch:chunk, we need either a commit-interval or a chunk-completion-policy attribute (but not both). The commit-interval determines a explicit chunk size (you can also use late binding to set the value using job parameters), while we implement more complex policies using chunk-completion-policy. In this example we will use an in-built policy that treats a chunk as the entire file:
+
+[source,xml]
+----
+<bean id="wholeFileCompletionPolicy" class="org.springframework.batch.repeat.policy.DefaultResultCompletionPolicy"/>
+----
+
+*Scheduling*
+
+With the job now configured, we need a way to run the job on a schedule. Before creating a scheduled function, we need to configure a JobLauncher and JobRepository:
+
+[source, xml]
+----
+<bean id="jobRepository"
+	class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+	<property name="transactionManager" ref="transactionManager" />
+	<property name="isolationLevelForCreate" value="ISOLATION_DEFAULT"/>
+</bean>
+
+<bean id="jobLauncher"
+	class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+	<property name="jobRepository" ref="jobRepository" />
+</bean>
+----
+
+For scheduling a job to run daily, an ideal tool would something akin to a unix style cron job. Quartz is an independent scheduling software that provides support for cron jobs and integrates seamlessly with Spring.
+
+To add it to the project:
+
+[source, xml]
+----
+<dependency>
+	<groupId>org.quartz-scheduler</groupId>
+	<artifactId>quartz</artifactId>
+	<version>1.8.5</version>
+</dependency>
+----
+
+NOTE: We are not using the latest version due to incompatibilities from API changes in Quartz
+
+For the scheduling itself:
+
+[source, java]
+----
+@Service
+public class ProcessOrders {
+	
+	@Autowired
+	private JobLauncher launcher;
+	
+	
+	@Autowired
+	private Job job;
+	
+	
+	@Scheduled(cron="0 0 * * * ?")
+	public void processDailyOrders() throws ... {
+		JobParametersBuilder builder = new JobParametersBuilder();
+		builder.addDate("today", new Date());
+		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
+		builder.addString("input.file", "file:json-" + format.format(new Date()) + ".txt");
+		builder.addString("output.file", "file:processedorders-" + format.format(new Date()) + ".txt");
+		launcher.run(job, builder.toJobParameters());
+		System.out.println("Processing");
+	}	
+}
+----
+
+We inject both a job launcher and job into the class. We also assign the input.file and output.file as jobparameters so that they can be late bound in the ItemReader and ItemWriter.
+
+Since we are using annotation, we need to let the application know to scan for annotations. So, using the task namespace: xmlns:task="http://www.springframework.org/schema/task", we can set up the schedule:
+
+[source, xml]
+----
+<task:annotation-driven executor="executorWithPoolSizeRange"
+	scheduler="taskScheduler" />
+
+<task:executor id="executorWithPoolSizeRange" pool-size="5-25"
+	queue-capacity="100" />
+
+<task:scheduler id="taskScheduler" pool-size="1" />
+----
+
+
+.Summary

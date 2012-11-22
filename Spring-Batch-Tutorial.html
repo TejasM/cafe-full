@@ -392,15 +392,279 @@ div#toc a:visited { color: blue; }
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<div class="title">Tip</div>
+<div class="title">Note</div>
 </td>
 <td class="content">This example may seem a little contrived but there are many cases where batch processing would be ideal, especially in scenarios where security and/or atomicity are required.</td>
 </tr></table>
 </div>
+<div class="paragraph"><div class="title">What is Spring Batch?</div><p>Spring Batch is a framework for batch processing developed on top of Spring. It consists of a batch job skeleton, job execution API, and state management infrastructure. In this tutorial, we will be focusing on the first two aspects on Spring Batch.</p></div>
+<div class="paragraph"><div class="title">Extending the Web Module</div><p>We want to add the option to collect orders for processing later at end of the day. We can do this by using the currently form and just adding an additional mapping in the controller:</p></div>
+<div class="paragraph"><p>To save orders in a readable format we save orders as JSON in a text file and the convenience factor we use GSON: <a href="http://code.google.com/p/google-gson/">http://code.google.com/p/google-gson/</a>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;dependency&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;groupId&gt;</span></span>com.google.code.gson<span style="font-weight: bold"><span style="color: #0000FF">&lt;/groupId&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;artifactId&gt;</span></span>gson<span style="font-weight: bold"><span style="color: #0000FF">&lt;/artifactId&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;version&gt;</span></span>2.2.2<span style="font-weight: bold"><span style="color: #0000FF">&lt;/version&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/dependency&gt;</span></span></tt></pre></div></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>@Controller
+@<span style="font-weight: bold"><span style="color: #000000">RequestMapping</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"/order"</span><span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">public</span></span> <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #008080">OrderController</span> <span style="color: #FF0000">{</span>
+        <span style="color: #990000">...</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">private</span></span> <span style="color: #008080">Gson</span> converter <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">Gson</span></span><span style="color: #990000">();</span>
+
+        @<span style="font-weight: bold"><span style="color: #000000">RequestMapping</span></span><span style="color: #990000">(</span>method <span style="color: #990000">=</span> RequestMethod<span style="color: #990000">.</span>POST<span style="color: #990000">,</span> value<span style="color: #990000">=</span><span style="color: #FF0000">"batch"</span><span style="color: #990000">)</span>
+        @<span style="font-weight: bold"><span style="color: #000000">ResponseStatus</span></span><span style="color: #990000">(</span>HttpStatus<span style="color: #990000">.</span>CREATED<span style="color: #990000">)</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">public</span></span> @ResponseBody <span style="color: #008080">String</span> <span style="font-weight: bold"><span style="color: #000000">orderCreateBatch</span></span><span style="color: #990000">(</span><span style="color: #008080">Order</span> order<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">throws</span></span> IOException <span style="color: #FF0000">{</span>
+                order<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">setNumber</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #000000">getID</span></span><span style="color: #990000">());</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> <span style="color: #990000">(</span><span style="color: #008080">OrderItem</span> orderitem <span style="color: #990000">:</span> order<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getOrderItems</span></span><span style="color: #990000">())</span> <span style="color: #FF0000">{</span>
+                        orderitem<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">setOrderNumber</span></span><span style="color: #990000">(</span>order<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getNumber</span></span><span style="color: #990000">());</span>
+                <span style="color: #FF0000">}</span>
+                <span style="color: #008080">String</span> json <span style="color: #990000">=</span> converter<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">toJson</span></span><span style="color: #990000">(</span>order<span style="color: #990000">)</span> <span style="color: #990000">+</span> <span style="color: #FF0000">"</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">;</span>
+                <span style="color: #008080">SimpleDateFormat</span> format <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">SimpleDateFormat</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"dd-MM-yy"</span><span style="color: #990000">);</span>
+                <span style="color: #008080">String</span> date <span style="color: #990000">=</span> format<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">format</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">Date</span></span><span style="color: #990000">());</span>
+
+                <span style="color: #008080">File</span> file <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">File</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"json-"</span> <span style="color: #990000">+</span> date <span style="color: #990000">+</span> <span style="color: #FF0000">".txt"</span><span style="color: #990000">);</span>
+
+                <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>file<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">exists</span></span><span style="color: #990000">())</span><span style="color: #FF0000">{</span>
+                        file<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">createNewFile</span></span><span style="color: #990000">();</span>
+                <span style="color: #FF0000">}</span>
+
+                <span style="color: #008080">FileWriter</span> fileWritter <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">FileWriter</span></span><span style="color: #990000">(</span>file<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getName</span></span><span style="color: #990000">(),</span><span style="font-weight: bold"><span style="color: #0000FF">true</span></span><span style="color: #990000">);</span>
+            <span style="color: #008080">BufferedWriter</span> bufferWritter <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">BufferedWriter</span></span><span style="color: #990000">(</span>fileWritter<span style="color: #990000">);</span>
+            bufferWritter<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">write</span></span><span style="color: #990000">(</span>json<span style="color: #990000">);</span>
+            bufferWritter<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">close</span></span><span style="color: #990000">();</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #FF0000">"Successfully created Order #: "</span> <span style="color: #990000">+</span> order<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getNumber</span></span><span style="color: #990000">()</span> <span style="color: #990000">+</span> <span style="color: #FF0000">" and added for Batch processing"</span><span style="color: #990000">;</span>
+        <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>In order to send the form data to this mapping, we add another submit button:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;form:form</span></span> <span style="color: #009900">commandName</span><span style="color: #990000">=</span><span style="color: #FF0000">"order"</span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"order"</span> <span style="color: #009900">onsubmit</span><span style="color: #990000">=</span><span style="color: #FF0000">"return false;"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+        ...
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;tr&gt;</span></span>
+                <span style="font-weight: bold"><span style="color: #0000FF">&lt;td&gt;&lt;input</span></span> <span style="color: #009900">type</span><span style="color: #990000">=</span><span style="color: #FF0000">"submit"</span> <span style="color: #009900">value</span><span style="color: #990000">=</span><span style="color: #FF0000">"Submit for Batch Processing"</span> <span style="color: #009900">onclick</span><span style="color: #990000">=</span><span style="color: #FF0000">"submitOrderBatch()"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;&lt;/td&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;/tr&gt;</span></span>
+        ...
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/form:form&gt;</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;script</span></span> <span style="color: #009900">type</span><span style="color: #990000">=</span><span style="color: #FF0000">"text/javascript"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+        function submitOrderBatch() {
+                jq(function() {
+                        jq.post("order/batch", jq('#order').serialize(), function(data) {
+                                jq("#success").replaceWith(
+                                                '<span style="font-weight: bold"><span style="color: #0000FF">&lt;span</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"success"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>' + data + '<span style="font-weight: bold"><span style="color: #0000FF">&lt;/span&gt;</span></span>');
+                                jq("#table").load("/cafe/status");
+                        });
+                });
+        }
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/script&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>The controller appends the order as json string to a file for that specifc day/month/year.</p></div>
+<div class="paragraph"><div class="title">Configuring Batch Job</div><p>Spring Batch works with the concept of chunks. Chunks are a set of inputs that the batch job treats atomically, the chunk size can be as large(entire file/database) or as small (a single file) as you like.</p></div>
+<div class="paragraph"><p>Each chunk is taken care of in a step. A step consists of a Reader, a (optional) Processor, and a Writer. The reader reads every item in the chunk one by one and hands of the individual item to the item processor, if one is configured. The processor can then do whatever it is required to and hands of the processed form of the input, the output, to the writer. The writer collects all the outputs belonging to a chunk and writes them once all items have been processed, thus there is atomicity at a chunk level</p></div>
+<div class="paragraph"><p>We can configure a Spring Job in the following manner:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;batch:job</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"PlaceOrder"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;batch:step</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"order"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+                <span style="font-weight: bold"><span style="color: #0000FF">&lt;batch:tasklet</span></span> <span style="color: #009900">transaction-manager</span><span style="color: #990000">=</span><span style="color: #FF0000">"transactionManager"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+                        <span style="font-weight: bold"><span style="color: #0000FF">&lt;batch:chunk</span></span> <span style="color: #009900">reader</span><span style="color: #990000">=</span><span style="color: #FF0000">"orderReader"</span> <span style="color: #009900">processor</span><span style="color: #990000">=</span><span style="color: #FF0000">"placeOrder"</span> <span style="color: #009900">writer</span><span style="color: #990000">=</span><span style="color: #FF0000">"syncWriter"</span> <span style="color: #009900">chunk-completion-policy</span><span style="color: #990000">=</span><span style="color: #FF0000">"wholeFileCompletionPolicy"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+                <span style="font-weight: bold"><span style="color: #0000FF">&lt;/batch:tasklet&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;/batch:step&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/batch:job&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>Now to configure the individual parts:</p></div>
+<div class="paragraph"><p><strong>Reader</strong></p></div>
+<div class="paragraph"><p>Since we saved the orders to be batch processed in a plain text file, we can use Spring Batch&#8217;s in-built FlatFileItemReader:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"orderReader"</span> <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.batch.item.file.FlatFileItemReader"</span> <span style="color: #009900">scope</span><span style="color: #990000">=</span><span style="color: #FF0000">"step"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"resource"</span> <span style="color: #009900">value</span><span style="color: #990000">=</span><span style="color: #FF0000">"#{jobParameters['input.file']}"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"lineMapper"</span> <span style="color: #009900">ref</span><span style="color: #990000">=</span><span style="color: #FF0000">"jsonToOrder"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;&lt;/property&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"strict"</span> <span style="color: #009900">value</span><span style="color: #990000">=</span><span style="color: #FF0000">"false"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;&lt;/property&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/bean&gt;</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"jsonToOrder"</span> <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.integration.samples.cafe.batch.JsonToOrder"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.batch.core.scope.StepScope"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span></tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The step scope is not present by default in Spring so we create a StepScope Bean.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Spring Batch has a feature called late binding which allows you to setup the resource and other fields like it during run time. Therefore, we will provide the input resource at runtime, as it will be different for every day. The strict property is set to false because there may not be any orders that need processing on a given day, so its not strictly necessary for the file to exist.</p></div>
+<div class="paragraph"><p>The line mapper is custom class that is responsible for converting each line from JSON to an Order object. Here is the code for the JsonToOrder class:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">public</span></span> <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #008080">JsonToOrder</span> <span style="font-weight: bold"><span style="color: #0000FF">implements</span></span> LineMapper<span style="color: #990000">&lt;</span>Order<span style="color: #990000">&gt;</span><span style="color: #FF0000">{</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">private</span></span> <span style="color: #008080">Gson</span> converter <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">Gson</span></span><span style="color: #990000">();</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">public</span></span> <span style="color: #008080">Order</span> <span style="font-weight: bold"><span style="color: #000000">mapLine</span></span><span style="color: #990000">(</span><span style="color: #008080">String</span> line<span style="color: #990000">,</span> <span style="color: #009900">int</span> lineNumber<span style="color: #990000">)</span> <span style="font-weight: bold"><span style="color: #0000FF">throws</span></span> Exception <span style="color: #FF0000">{</span>
+                <span style="color: #008080">Order</span> order <span style="color: #990000">=</span> converter<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">fromJson</span></span><span style="color: #990000">(</span>line<span style="color: #990000">,</span> Order<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #0000FF">class</span></span><span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> order<span style="color: #990000">;</span>
+        <span style="color: #FF0000">}</span>
+
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Again here we are using Gson, but its only here for sake of convenience.</p></div>
+<div class="paragraph"><p><strong>Processor</strong></p></div>
+<div class="paragraph"><p>With the reader configured we can have a look at the processor. This is where we can start integrating Spring Integration and Spring Batch. The processor in a chunk step needs to implement ItemProcessor&lt;I,O&gt; and Spring Integration needs a gateway to publish orders to a channel, but there so reason why both can be done together.</p></div>
+<div class="paragraph"><p>We can do something similar to the following:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;gateway</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"cafe"</span> <span style="color: #009900">service-interface</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.integration.samples.cafe.batch.PlaceOrder"</span> <span style="color: #009900">default-request-channel</span><span style="color: #990000">=</span><span style="color: #FF0000">"orders"</span> <span style="color: #009900">default-reply-channel</span><span style="color: #990000">=</span><span style="color: #FF0000">"deliveries"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span></tt></pre></div></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>@<span style="font-weight: bold"><span style="color: #000000">Scope</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"step"</span><span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">public</span></span> <span style="font-weight: bold"><span style="color: #0000FF">interface</span></span> <span style="color: #008080">PlaceOrder</span> <span style="font-weight: bold"><span style="color: #0000FF">extends</span></span> ItemProcessor<span style="color: #990000">&lt;</span>Order<span style="color: #990000">,</span> Delivery<span style="color: #990000">&gt;</span> <span style="color: #FF0000">{</span>
+
+        @Gateway
+        <span style="color: #008080">Delivery</span> <span style="font-weight: bold"><span style="color: #000000">process</span></span><span style="color: #990000">(</span><span style="color: #008080">Order</span> item<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>So with a very simple and straightforward configuration, we can link any complex or simple Spring Integration setup to a batch process. With this configuration for every item read by the FlatFlieItemReader it will pass it onto the ItemProcessor. The processor, being a gateway, sends the Order, as a payload of a message, to the orders channel and waits for the reply from the deliveries.</p></div>
+<div class="paragraph"><p>This configuration is synchronous and this inefficient because while the message is processed we could be sending more messages. Spring Batch allows you do this seamlessly, with AsyncItemProcessor/Writer, which delegates to a SyncItemProcessor/Writer (like the one we just setup).</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Check repo for asynchronous version.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p><strong>Writer</strong></p></div>
+<div class="paragraph"><p>Moving onto to the writer:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"syncWriter"</span> <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.batch.item.file.FlatFileItemWriter"</span> <span style="color: #009900">scope</span><span style="color: #990000">=</span><span style="color: #FF0000">"step"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"resource"</span> <span style="color: #009900">value</span><span style="color: #990000">=</span><span style="color: #FF0000">"#{jobParameters['output.file']}"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"lineAggregator"</span> <span style="color: #009900">ref</span><span style="color: #990000">=</span><span style="color: #FF0000">"lineAggregator"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;&lt;/property&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/bean&gt;</span></span>
+
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"lineAggregator"</span> <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.batch.item.file.transform.PassThroughLineAggregator"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>As with the reader, we late bind the resource that the writer writes to. In order to determine how to collect and write the ouptuts, the ItemWriter needs a LineAggregator. Spring Batch comes with several common ones; we are using the PassThroughLineAggregator, which just calls the toString method of the object(in our case a delivery).</p></div>
+<div class="paragraph"><p>Now then only a small bit of the chunk step remains to be explained. For each &lt;batch:chunk, we need either a commit-interval or a chunk-completion-policy attribute (but not both). The commit-interval determines a explicit chunk size (you can also use late binding to set the value using job parameters), while we implement more complex policies using chunk-completion-policy. In this example we will use an in-built policy that treats a chunk as the entire file:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"wholeFileCompletionPolicy"</span> <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.batch.repeat.policy.DefaultResultCompletionPolicy"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p><strong>Scheduling</strong></p></div>
+<div class="paragraph"><p>With the job now configured, we need a way to run the job on a schedule. Before creating a scheduled function, we need to configure a JobLauncher and JobRepository:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"jobRepository"</span>
+        <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"transactionManager"</span> <span style="color: #009900">ref</span><span style="color: #990000">=</span><span style="color: #FF0000">"transactionManager"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"isolationLevelForCreate"</span> <span style="color: #009900">value</span><span style="color: #990000">=</span><span style="color: #FF0000">"ISOLATION_DEFAULT"</span><span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/bean&gt;</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;bean</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"jobLauncher"</span>
+        <span style="color: #009900">class</span><span style="color: #990000">=</span><span style="color: #FF0000">"org.springframework.batch.core.launch.support.SimpleJobLauncher"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;property</span></span> <span style="color: #009900">name</span><span style="color: #990000">=</span><span style="color: #FF0000">"jobRepository"</span> <span style="color: #009900">ref</span><span style="color: #990000">=</span><span style="color: #FF0000">"jobRepository"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/bean&gt;</span></span></tt></pre></div></div>
+<div class="paragraph"><p>For scheduling a job to run daily, an ideal tool would something akin to a unix style cron job. Quartz is an independent scheduling software that provides support for cron jobs and integrates seamlessly with Spring.</p></div>
+<div class="paragraph"><p>To add it to the project:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;dependency&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;groupId&gt;</span></span>org.quartz-scheduler<span style="font-weight: bold"><span style="color: #0000FF">&lt;/groupId&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;artifactId&gt;</span></span>quartz<span style="font-weight: bold"><span style="color: #0000FF">&lt;/artifactId&gt;</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">&lt;version&gt;</span></span>1.8.5<span style="font-weight: bold"><span style="color: #0000FF">&lt;/version&gt;</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;/dependency&gt;</span></span></tt></pre></div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">We are not using the latest version due to incompatibilities from API changes in Quartz</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>For the scheduling itself:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>@Service
+<span style="font-weight: bold"><span style="color: #0000FF">public</span></span> <span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="color: #008080">ProcessOrders</span> <span style="color: #FF0000">{</span>
+
+        @Autowired
+        <span style="font-weight: bold"><span style="color: #0000FF">private</span></span> <span style="color: #008080">JobLauncher</span> launcher<span style="color: #990000">;</span>
+
+
+        @Autowired
+        <span style="font-weight: bold"><span style="color: #0000FF">private</span></span> <span style="color: #008080">Job</span> job<span style="color: #990000">;</span>
+
+
+        @<span style="font-weight: bold"><span style="color: #000000">Scheduled</span></span><span style="color: #990000">(</span>cron<span style="color: #990000">=</span><span style="color: #FF0000">"0 0 * * * ?"</span><span style="color: #990000">)</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">public</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">processDailyOrders</span></span><span style="color: #990000">()</span> <span style="font-weight: bold"><span style="color: #0000FF">throws</span></span> <span style="color: #990000">...</span> <span style="color: #FF0000">{</span>
+                <span style="color: #008080">JobParametersBuilder</span> builder <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">JobParametersBuilder</span></span><span style="color: #990000">();</span>
+                builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">addDate</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"today"</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">Date</span></span><span style="color: #990000">());</span>
+                <span style="color: #008080">SimpleDateFormat</span> format <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">SimpleDateFormat</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"dd-MM-yy"</span><span style="color: #990000">);</span>
+                builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">addString</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"input.file"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"file:json-"</span> <span style="color: #990000">+</span> format<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">format</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">Date</span></span><span style="color: #990000">())</span> <span style="color: #990000">+</span> <span style="color: #FF0000">".txt"</span><span style="color: #990000">);</span>
+                builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">addString</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"output.file"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"file:processedorders-"</span> <span style="color: #990000">+</span> format<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">format</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">new</span></span> <span style="font-weight: bold"><span style="color: #000000">Date</span></span><span style="color: #990000">())</span> <span style="color: #990000">+</span> <span style="color: #FF0000">".txt"</span><span style="color: #990000">);</span>
+                launcher<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">run</span></span><span style="color: #990000">(</span>job<span style="color: #990000">,</span> builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">toJobParameters</span></span><span style="color: #990000">());</span>
+                System<span style="color: #990000">.</span>out<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">println</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Processing"</span><span style="color: #990000">);</span>
+        <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>We inject both a job launcher and job into the class. We also assign the input.file and output.file as jobparameters so that they can be late bound in the ItemReader and ItemWriter.</p></div>
+<div class="paragraph"><p>Since we are using annotation, we need to let the application know to scan for annotations. So, using the task namespace: xmlns:task="http://www.springframework.org/schema/task", we can set up the schedule:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">&lt;task:annotation-driven</span></span> <span style="color: #009900">executor</span><span style="color: #990000">=</span><span style="color: #FF0000">"executorWithPoolSizeRange"</span>
+        <span style="color: #009900">scheduler</span><span style="color: #990000">=</span><span style="color: #FF0000">"taskScheduler"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;task:executor</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"executorWithPoolSizeRange"</span> <span style="color: #009900">pool-size</span><span style="color: #990000">=</span><span style="color: #FF0000">"5-25"</span>
+        <span style="color: #009900">queue-capacity</span><span style="color: #990000">=</span><span style="color: #FF0000">"100"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">&lt;task:scheduler</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"taskScheduler"</span> <span style="color: #009900">pool-size</span><span style="color: #990000">=</span><span style="color: #FF0000">"1"</span> <span style="font-weight: bold"><span style="color: #0000FF">/&gt;</span></span></tt></pre></div></div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-11-22 11:02:38 EDT
+Last updated 2012-11-22 16:23:30 EDT
 </div>
 </div>
 </body>
