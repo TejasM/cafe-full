@@ -3,7 +3,7 @@ Spring Integration Tutorial
 :Author:    Tejas Mehta
 :Email:     tmehta@redhat.com
 :Date:      22/11/2012
-
+============================================
 What is Spring Integration?
 ---------------------------
 Spring Integration is an extension to the Spring Framework that adds support for Enterprise Integration Patterns (https://www.youtube.com/watch?v=Xwi1DU6KoQ4).

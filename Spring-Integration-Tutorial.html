@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.4.5" />
-<title>Spring Integration and Spring Batch Tutorial</title>
+<title></title>
 <style type="text/css">
 /* Debug borders */
 p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
@@ -384,11 +384,11 @@ div#toc a:visited { color: blue; }
 </head>
 <body>
 <div id="header">
-<h1>Spring Integration and Spring Batch Tutorial</h1>
-<span id="author">Tejas Mehta</span><br />
-<span id="email"><tt>&lt;<a href="mailto:tmehta@redhat.com">tmehta@redhat.com</a>&gt;</tt></span><br />
-<span id="revdate">22/11/2012</span>
 </div>
+<div class="paragraph"><p>Spring Integration Tutorial</p></div>
+<div class="exampleblock">
+<div class="exampleblock-content">
+</div></div>
 <h2 id="_what_is_spring_integration">What is Spring Integration?</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Spring Integration is an extension to the Spring Framework that adds support for Enterprise Integration Patterns (<a href="https://www.youtube.com/watch?v=Xwi1DU6KoQ4">https://www.youtube.com/watch?v=Xwi1DU6KoQ4</a>).
@@ -564,15 +564,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #0000FF">&lt;script</span></span> <span style="color: #009900">type</span><span style="color: #990000">=</span><span style="color: #FF0000">"text/javascript"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>
         function submitOrder() {
                 jq(function() {
-                        // Call a URL and pass two arguments
-                        // Also pass a call back function
-                        // See http://api.jquery.com/jQuery.post/
-                        // See http://api.jquery.com/jQuery.ajax/
-                        // You might find a warning in Firefox: Warning: Unexpected token in attribute selector: '!'
-                        // See http://bugs.jquery.com/ticket/7535
                         jq.post("order", jq('#order').serialize(), function(data) {
-                                // data contains the result
-                                // Assign result to the sum id
                                 jq("#success").replaceWith(
                                                 '<span style="font-weight: bold"><span style="color: #0000FF">&lt;span</span></span> <span style="color: #009900">id</span><span style="color: #990000">=</span><span style="color: #FF0000">"success"</span><span style="font-weight: bold"><span style="color: #0000FF">&gt;</span></span>' + data + '<span style="font-weight: bold"><span style="color: #0000FF">&lt;/span&gt;</span></span>');
                                 jq("#table").load("/cafe/status");
@@ -834,7 +826,7 @@ http://www.gnu.org/software/src-highlite -->
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-11-22 10:32:26 EDT
+Last updated 2012-11-23 11:47:28 EDT
 </div>
 </div>
 </body>
