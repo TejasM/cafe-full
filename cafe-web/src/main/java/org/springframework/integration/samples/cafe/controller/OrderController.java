@@ -80,6 +80,7 @@ public class OrderController {
 		String date = format.format(new Date());
 		
 		File file =new File("app-root/data/" + "json-" + date + ".txt");
+		System.out.println(file.getAbsolutePath());
 		//if file doesnt exists, then create it
 		if(!file.exists()){
 			file.createNewFile();
