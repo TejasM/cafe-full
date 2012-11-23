@@ -73,12 +73,12 @@ public class OrderController {
 		String date = format.format(new Date());
 		
 		File file =new File("json-" + date + ".txt");
-		 
+		
 		//if file doesnt exists, then create it
 		if(!file.exists()){
 			file.createNewFile();
 		}
-
+		System.out.println(file.getAbsolutePath());
 		//true = append file
 		FileWriter fileWritter = new FileWriter(file.getName(),true);
         BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
