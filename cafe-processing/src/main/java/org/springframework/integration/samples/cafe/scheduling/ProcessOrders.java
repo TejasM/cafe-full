@@ -28,7 +28,7 @@ public class ProcessOrders {
 	private Job job;
 	
 	
-	@Scheduled(cron="0 0/5 * * * ?")
+	@Scheduled(cron="0 0 * * * ?")
 	public void processDailyOrders() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException, IOException{
 		JobParametersBuilder builder = new JobParametersBuilder();
 		builder.addDate("today", new Date());
