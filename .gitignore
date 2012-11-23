@@ -1,6 +1,7 @@
 target/
 deployments/
 
+.idea
 .classpath
 .project
 .settings
