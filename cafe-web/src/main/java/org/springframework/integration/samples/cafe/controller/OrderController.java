@@ -79,7 +79,7 @@ public class OrderController {
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
 		String date = format.format(new Date());
 		
-		File file =new File(request.getRealPath("/orders/") + "json-" + date + ".txt");
+		File file =new File("app-root/data/" + "json-" + date + ".txt");
 		//if file doesnt exists, then create it
 		if(!file.exists()){
 			file.createNewFile();
