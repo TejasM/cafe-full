@@ -86,7 +86,7 @@ public class OrderController {
 		}
 		System.out.println(file.getAbsolutePath());
 		//true = append file
-		FileWriter fileWritter = new FileWriter(file.getName(),true);
+		FileWriter fileWritter = new FileWriter(file.getAbsolutePath(),true);
         BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
         bufferWritter.write(json);
         bufferWritter.close();
