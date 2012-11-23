@@ -28,13 +28,13 @@ public class ProcessOrders {
 	private Job job;
 	
 	
-	@Scheduled(cron="0 0 * * * ?")
+	@Scheduled(cron="0 0/5 * * * ?")
 	public void processDailyOrders() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException, IOException{
 		JobParametersBuilder builder = new JobParametersBuilder();
 		builder.addDate("today", new Date());
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yy");
-		builder.addString("input.file", "file:json-" + format.format(new Date()) + ".txt");
-		builder.addString("output.file", "file:processedorders-" + format.format(new Date()) + ".txt");
+		builder.addString("input.file", "file:../../app-root/data/json-" + format.format(new Date()) + ".txt");
+		builder.addString("output.file", "file:../../app-root/data/processedorders-" + format.format(new Date()) + ".txt");
         launcher.run(job, builder.toJobParameters());
 		System.out.println("Processing");
 	}	
